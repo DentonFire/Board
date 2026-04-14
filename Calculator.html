@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DFRRF Overtime Impact Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Source Sans 3', sans-serif; background: #fafaf8; }
+  input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; height: 18px; width: 100%; position: relative; z-index: 2; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #1a2744; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); margin-top: -6px; }
+  input[type="range"]::-moz-range-thumb { height: 14px; width: 14px; border-radius: 50%; background: #1a2744; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  input[type="range"]::-webkit-slider-runnable-track { height: 0; }
+  input[type="range"]::-moz-range-track { height: 0; }
+  table { border-collapse: collapse; }
+  th, td { font-family: 'Source Sans 3', sans-serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const BENEFIT_RATE = 0.0259;
+const ANNUAL_HOURS = 2912;
+const CONTRIBUTION_RATE = 0.311;
+const DISCOUNT_RATE = 0.0675;
+const OT_MULTIPLIER = 1.5;
+const SERVICE_CREDIT_RATIO = 1.25;
+
+const sans = "'Source Sans 3', sans-serif";
+
+function pv(annualPayment, rate, years) {
+  if (rate === 0) return annualPayment * years;
+  return annualPayment * ((1 - Math.pow(1 + rate, -years)) / rate);
+}
+
+function fmt(n) {
+  return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+}
+
+function fmtPct(n) {
+  return (n * 100).toFixed(1) + "%";
+}
+
+function Slider({ label, value, onChange, min, max, step = 1, unit = "", prefix = "" }) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+        <span style={{ fontSize: 13, color: "#4a5568", fontFamily: sans }}>{label}</span>
+        <span style={{ fontSize: 15, fontWeight: 700, color: "#1a2744", fontFamily: sans }}>
+          {prefix}{fmt(value)}{unit}
+        </span>
+      </div>
+      <div style={{ position: "relative" }}>
+        <div style={{ position: "absolute", top: 6, left: 0, right: 0, height: 5, background: "#e2e8f0", borderRadius: 3 }} />
+        <div style={{ position: "absolute", top: 6, left: 0, width: pct + "%", height: 5, background: "linear-gradient(90deg, #1a2744, #2d4a7c)", borderRadius: 3, transition: "width 0.15s ease" }} />
+        <input type="range" min={min} max={max} step={step} value={value}
+          onChange={e => onChange(Number(e.target.value))} />
+      </div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value, sub, color = "#1a2744", bg = "#f7f9fc" }) {
+  return (
+    <div style={{ background: bg, borderRadius: 10, padding: "14px 16px", borderLeft: "4px solid " + color, marginBottom: 10 }}>
+      <div style={{ fontSize: 12, color: "#718096", fontFamily: sans, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: color, fontFamily: sans }}>{value}</div>
+      {sub && <div style={{ fontSize: 11, color: "#a0aec0", marginTop: 2, fontFamily: sans }}>{sub}</div>}
+    </div>
+  );
+}
+
+function ComparisonBar({ leftLabel, leftValue, rightLabel, rightValue, leftColor, rightColor }) {
+  const mx = Math.max(Math.abs(leftValue), Math.abs(rightValue), 1);
+  const leftPct = (Math.abs(leftValue) / mx) * 100;
+  const rightPct = (Math.abs(rightValue) / mx) * 100;
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#718096", marginBottom: 4, fontFamily: sans }}>
+        <span>{leftLabel}</span><span>{rightLabel}</span>
+      </div>
+      <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ height: 22, width: leftPct + "%", minWidth: leftPct > 0 ? 3 : 0, background: leftColor, borderRadius: "5px 0 0 5px", transition: "width 0.4s ease" }} />
+        </div>
+        <div style={{ width: 2, height: 28, background: "#cbd5e0" }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ height: 22, width: rightPct + "%", minWidth: rightPct > 0 ? 3 : 0, background: rightColor, borderRadius: "0 5px 5px 0", transition: "width 0.4s ease" }} />
+        </div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, marginTop: 3, fontFamily: sans }}>
+        <span style={{ color: leftColor }}>{"$" + fmt(Math.abs(leftValue))}</span>
+        <span style={{ color: rightColor }}>{"$" + fmt(Math.abs(rightValue))}</span>
+      </div>
+    </div>
+  );
+}
+
+function OTCalculator() {
+  const [view, setView] = useState("member");
+  const [baseSalary, setBaseSalary] = useState(95000);
+  const [yos, setYos] = useState(25);
+  const [retireAge, setRetireAge] = useState(52);
+  const [preMaxOT, setPreMaxOT] = useState(150);
+  const [maxOT, setMaxOT] = useState(300);
+
+  const preMaxYears = Math.max(0, yos - 3);
+  const maxYears = 3;
+
+  const results = useMemo(function() {
+    var hourlyBase = baseSalary / ANNUAL_HOURS;
+    var otHourlyRate = hourlyBase * OT_MULTIPLIER;
+
+    var preMaxOTPay = preMaxOT * otHourlyRate;
+    var maxOTPay = maxOT * otHourlyRate;
+
+    var totalCareerOTPay = (preMaxOTPay * preMaxYears) + (maxOTPay * maxYears);
+    var totalCareerOTHours = (preMaxOT * preMaxYears) + (maxOT * maxYears);
+    var totalContributions = totalCareerOTPay * CONTRIBUTION_RATE;
+
+    var preMaxContrib = preMaxOTPay * preMaxYears * CONTRIBUTION_RATE;
+    var maxContrib = maxOTPay * maxYears * CONTRIBUTION_RATE;
+
+    // SCENARIO 1: CURRENT (OT in FAS)
+    var fasWithOT = baseSalary + maxOTPay;
+    var monthlyBenefitCurrent = (yos * BENEFIT_RATE * fasWithOT) / 12;
+    var monthlyBenefitBase = (yos * BENEFIT_RATE * baseSalary) / 12;
+    var monthlyBenefitBoost = monthlyBenefitCurrent - monthlyBenefitBase;
+    var annualBenefitCurrent = monthlyBenefitCurrent * 12;
+    var replacementCurrent = annualBenefitCurrent / baseSalary;
+
+    var retirementYears = Math.max(1, 80 - retireAge);
+    var extraLiabilityPV = pv(monthlyBenefitBoost * 12, DISCOUNT_RATE, retirementYears);
+    var netCostS1 = extraLiabilityPV - totalContributions;
+    var ratioS1 = totalContributions > 0 ? extraLiabilityPV / totalContributions : 0;
+    var lateRatio = maxContrib > 0 ? extraLiabilityPV / maxContrib : Infinity;
+
+    // SCENARIO 2: ALTERNATIVE (OT as Service Credit)
+    var additionalServiceHours = totalCareerOTHours * SERVICE_CREDIT_RATIO;
+    var additionalServiceYears = additionalServiceHours / ANNUAL_HOURS;
+    var effectiveYOS = yos + additionalServiceYears;
+
+    var monthlyBenefitAlt = (effectiveYOS * BENEFIT_RATE * baseSalary) / 12;
+    var monthlyBenefitAltBoost = monthlyBenefitAlt - monthlyBenefitBase;
+    var annualBenefitAlt = monthlyBenefitAlt * 12;
+    var replacementAlt = annualBenefitAlt / baseSalary;
+
+    var extraLiabilityPVAlt = pv(monthlyBenefitAltBoost * 12, DISCOUNT_RATE, retirementYears);
+    var netCostS2 = extraLiabilityPVAlt - totalContributions;
+    var ratioS2 = totalContributions > 0 ? extraLiabilityPVAlt / totalContributions : 0;
+
+    var preMaxServiceCredit = (preMaxOT * preMaxYears * SERVICE_CREDIT_RATIO) / ANNUAL_HOURS;
+    var maxServiceCredit = (maxOT * maxYears * SERVICE_CREDIT_RATIO) / ANNUAL_HOURS;
+
+    return {
+      monthlyBenefitCurrent: monthlyBenefitCurrent, monthlyBenefitBase: monthlyBenefitBase, monthlyBenefitBoost: monthlyBenefitBoost,
+      annualBenefitCurrent: annualBenefitCurrent, fasWithOT: fasWithOT, replacementCurrent: replacementCurrent,
+      totalContributions: totalContributions, extraLiabilityPV: extraLiabilityPV, netCostS1: netCostS1, ratioS1: ratioS1,
+      preMaxContrib: preMaxContrib, maxContrib: maxContrib, preMaxOTPay: preMaxOTPay, maxOTPay: maxOTPay,
+      totalCareerOTPay: totalCareerOTPay, totalCareerOTHours: totalCareerOTHours, lateRatio: lateRatio,
+      additionalServiceYears: additionalServiceYears, effectiveYOS: effectiveYOS,
+      monthlyBenefitAlt: monthlyBenefitAlt, monthlyBenefitAltBoost: monthlyBenefitAltBoost,
+      annualBenefitAlt: annualBenefitAlt, replacementAlt: replacementAlt,
+      extraLiabilityPVAlt: extraLiabilityPVAlt, netCostS2: netCostS2, ratioS2: ratioS2,
+      preMaxServiceCredit: preMaxServiceCredit, maxServiceCredit: maxServiceCredit,
+      retirementYears: retirementYears
+    };
+  }, [baseSalary, yos, retireAge, preMaxOT, maxOT, preMaxYears]);
+
+  var C = { navyDark: "#1a2744", navy: "#2d4a7c", gold: "#c9a84c", green: "#2d6a4f", red: "#c53030", warmGray: "#f7f5f0" };
+
+  return (
+    <div style={{ fontFamily: sans, background: "#fafaf8", minHeight: "100vh" }}>
+
+      {/* Header */}
+      <div style={{ background: "linear-gradient(135deg, " + C.navyDark + " 0%, #1e3a5f 100%)", padding: "24px 20px 20px", borderBottom: "3px solid " + C.gold }}>
+        <div style={{ maxWidth: 820, margin: "0 auto" }}>
+          <div style={{ fontSize: 11, letterSpacing: 2, color: C.gold, textTransform: "uppercase", marginBottom: 4 }}>DFRRF Board Analysis Tool</div>
+          <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1.2 }}>Overtime Impact Calculator</h1>
+          <p style={{ fontSize: 13, color: "#a8bdd4", margin: "6px 0 0", lineHeight: 1.4 }}>How OT timing affects the member's benefit and the fund's bottom line</p>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 820, margin: "0 auto", padding: "0 16px 40px" }}>
+
+        {/* View Toggle */}
+        <div style={{ display: "flex", margin: "16px 0 14px", borderRadius: 8, overflow: "hidden", border: "2px solid " + C.navyDark }}>
+          {[{ key: "member", label: "\uD83D\uDC64 Member Benefit View" }, { key: "fund", label: "\uD83C\uDFE6 Fund Health View" }].map(function(t) {
+            return (
+              <button key={t.key} onClick={function() { setView(t.key); }} style={{
+                flex: 1, padding: "11px 8px", border: "none", cursor: "pointer", fontSize: 13,
+                fontWeight: view === t.key ? 800 : 600, fontFamily: sans,
+                background: view === t.key ? C.navyDark : "#fff",
+                color: view === t.key ? "#fff" : C.navyDark, transition: "all 0.2s"
+              }}>{t.label}</button>
+            );
+          })}
+        </div>
+
+        {/* INPUTS */}
+        <div style={{ background: "#fff", borderRadius: 12, padding: "20px 20px 6px", marginBottom: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid #e8e5df" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5, color: C.navy, marginBottom: 14 }}>Career Profile</div>
+          <Slider label="Base Annual Salary (excludes OT)" value={baseSalary} onChange={setBaseSalary} min={55000} max={160000} step={1000} prefix="$" />
+          <Slider label="Years of Service at Retirement" value={yos} onChange={setYos} min={20} max={35} unit=" years" />
+          <Slider label="Retirement Age" value={retireAge} onChange={setRetireAge} min={50} max={62} />
+
+          <div style={{ borderTop: "1px solid #eee", marginTop: 4, paddingTop: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5, color: C.navy, marginBottom: 6 }}>Average Overtime Hours per Year</div>
+            <div style={{ background: C.warmGray, borderRadius: 8, padding: "10px 14px", marginBottom: 14, fontSize: 12, color: "#666", lineHeight: 1.5 }}>
+              The "Max 3" is the highest 36 consecutive months of compensation used to calculate your Final Average Salary. Under the current system, only OT during this window affects your benefit.
+            </div>
+            <Slider label={"Prior to Your Max 3 (" + preMaxYears + " years)"} value={preMaxOT} onChange={setPreMaxOT} min={0} max={1200} step={10} unit=" hrs/yr" />
+            <Slider label="During Your Max 3 (final 36 months)" value={maxOT} onChange={setMaxOT} min={0} max={1200} step={10} unit=" hrs/yr" />
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          {[
+            { label: "Total Career OT Hours", val: fmt(results.totalCareerOTHours), color: C.navyDark },
+            { label: "Total Career OT Pay", val: "$" + fmt(results.totalCareerOTPay), color: C.navyDark },
+            { label: "OT Contributions (31.1%)", val: "$" + fmt(results.totalContributions), color: C.green }
+          ].map(function(s, i) {
+            return (
+              <div key={i} style={{ flex: 1, background: "#fff", borderRadius: 8, padding: "10px 12px", textAlign: "center", border: "1px solid #e8e5df" }}>
+                <div style={{ fontSize: 10, color: "#888" }}>{s.label}</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: s.color }}>{s.val}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ═══════════════ MEMBER BENEFIT VIEW ═══════════════ */}
+        {view === "member" && (<React.Fragment>
+          <div style={{ background: C.warmGray, borderRadius: 10, padding: "14px 16px", marginBottom: 14, border: "1px solid #e0ddd6" }}>
+            <div style={{ fontSize: 12, color: "#888" }}>Baseline Benefit (zero OT in calculation)</div>
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{yos} yrs × 2.59% × ${fmt(baseSalary)}</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: "#999" }}>${fmt(results.monthlyBenefitBase)}<span style={{ fontSize: 14, fontWeight: 400 }}>/month</span></div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+            {/* Current */}
+            <div style={{ flex: 1, background: "#fff", borderRadius: 12, border: "2px solid " + C.navyDark, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+              <div style={{ background: C.navyDark, padding: "10px 14px", color: "#fff", fontSize: 12, fontWeight: 700, textAlign: "center" }}>
+                CURRENT SYSTEM<div style={{ fontSize: 10, fontWeight: 400, opacity: 0.7, marginTop: 2 }}>OT in Final Average Salary</div>
+              </div>
+              <div style={{ padding: "14px" }}>
+                <div style={{ fontSize: 11, color: "#888" }}>Monthly Benefit</div>
+                <div style={{ fontSize: 28, fontWeight: 900, color: C.navyDark }}>${fmt(results.monthlyBenefitCurrent)}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: results.monthlyBenefitBoost > 0 ? C.green : "#888", marginBottom: 12 }}>
+                  {results.monthlyBenefitBoost > 0 ? "+" : ""}${fmt(results.monthlyBenefitBoost)} from OT
+                </div>
+                <div style={{ borderTop: "1px solid #eee", paddingTop: 10, fontSize: 12 }}>
+                  {[["Final Avg Salary (with Max-3 OT)", "$" + fmt(results.fasWithOT)], ["Replacement Ratio", fmtPct(results.replacementCurrent)], ["Annual Benefit", "$" + fmt(results.annualBenefitCurrent)]].map(function(pair, i) {
+                    return (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                        <span style={{ color: "#888" }}>{pair[0]}</span><span style={{ fontWeight: 700, color: C.navyDark }}>{pair[1]}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ background: "#fff8e5", borderRadius: 6, padding: "8px 10px", marginTop: 12, fontSize: 11, color: "#8b6508", lineHeight: 1.4 }}>
+                  ⚠️ Only OT during the <strong>Max 3</strong> affects your benefit.{preMaxOT > 0 && preMaxYears > 0 ? " Your " + fmt(preMaxOT * preMaxYears) + " hours of pre-Max-3 OT adds $0 to your pension." : ""}
+                </div>
+              </div>
+            </div>
+
+            {/* Alternative */}
+            <div style={{ flex: 1, background: "#fff", borderRadius: 12, border: "2px solid " + C.gold, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+              <div style={{ background: "linear-gradient(135deg, " + C.gold + ", #b8941f)", padding: "10px 14px", color: C.navyDark, fontSize: 12, fontWeight: 700, textAlign: "center" }}>
+                ALTERNATIVE SYSTEM<div style={{ fontSize: 10, fontWeight: 400, opacity: 0.8, marginTop: 2 }}>OT as Service Credit (1.25:1)</div>
+              </div>
+              <div style={{ padding: "14px" }}>
+                <div style={{ fontSize: 11, color: "#888" }}>Monthly Benefit</div>
+                <div style={{ fontSize: 28, fontWeight: 900, color: C.navyDark }}>${fmt(results.monthlyBenefitAlt)}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: results.monthlyBenefitAltBoost > 0 ? C.green : "#888", marginBottom: 12 }}>
+                  {results.monthlyBenefitAltBoost > 0 ? "+" : ""}${fmt(results.monthlyBenefitAltBoost)} from OT
+                </div>
+                <div style={{ borderTop: "1px solid #eee", paddingTop: 10, fontSize: 12 }}>
+                  {[["Final Avg Salary (base pay only)", "$" + fmt(baseSalary)], ["Service Credit Earned", "+" + results.additionalServiceYears.toFixed(2) + " yrs"], ["Effective YOS", results.effectiveYOS.toFixed(2) + " yrs"], ["Replacement Ratio", fmtPct(results.replacementAlt)]].map(function(pair, i) {
+                    return (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                        <span style={{ color: "#888" }}>{pair[0]}</span><span style={{ fontWeight: 700, color: i === 1 ? C.green : C.navyDark }}>{pair[1]}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ background: "#eef6ef", borderRadius: 6, padding: "8px 10px", marginTop: 12, fontSize: 11, color: "#2d6a4f", lineHeight: 1.4 }}>
+                  ✅ Every OT hour across your <strong>entire career</strong> earns service credit. No timing strategy needed.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Phase Table */}
+          <div style={{ background: "#fff", borderRadius: 12, padding: "16px", border: "1px solid #e8e5df", marginBottom: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5, color: C.navy, marginBottom: 12 }}>Where OT Counts</div>
+            <table style={{ width: "100%", fontSize: 12 }}>
+              <thead><tr style={{ borderBottom: "2px solid " + C.navyDark }}>
+                <th style={{ textAlign: "left", padding: "6px 8px", color: C.navyDark }}>Phase</th>
+                <th style={{ textAlign: "right", padding: "6px 8px", color: C.navyDark }}>OT Pay</th>
+                <th style={{ textAlign: "center", padding: "6px 8px", color: C.navyDark }}>Current: Final Avg Salary</th>
+                <th style={{ textAlign: "center", padding: "6px 8px", color: C.gold }}>Alt: Service Credit</th>
+              </tr></thead>
+              <tbody>
+                <tr style={{ borderBottom: "1px solid #eee" }}>
+                  <td style={{ padding: "10px 8px" }}>Prior to Max 3<br /><span style={{ fontSize: 10, color: "#aaa" }}>{preMaxYears} yrs × {fmt(preMaxOT)} hrs</span></td>
+                  <td style={{ textAlign: "right", padding: "10px 8px" }}>${fmt(results.preMaxOTPay * preMaxYears)}</td>
+                  <td style={{ textAlign: "center", padding: "10px 8px", color: "#bbb" }}>No effect ❌</td>
+                  <td style={{ textAlign: "center", padding: "10px 8px", color: C.green, fontWeight: 700 }}>+{results.preMaxServiceCredit.toFixed(2)} yrs ✅</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: "10px 8px" }}>Max 3<br /><span style={{ fontSize: 10, color: "#aaa" }}>3 yrs × {fmt(maxOT)} hrs</span></td>
+                  <td style={{ textAlign: "right", padding: "10px 8px" }}>${fmt(results.maxOTPay * maxYears)}</td>
+                  <td style={{ textAlign: "center", padding: "10px 8px", color: C.red, fontWeight: 700 }}>+${fmt(results.fasWithOT - baseSalary)} to FAS ⚡</td>
+                  <td style={{ textAlign: "center", padding: "10px 8px", color: C.green, fontWeight: 700 }}>+{results.maxServiceCredit.toFixed(2)} yrs ✅</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Key Difference */}
+          <div style={{ background: "linear-gradient(135deg, " + C.navyDark + ", #1e3a5f)", borderRadius: 12, padding: "16px 18px", color: "#fff", fontSize: 13, lineHeight: 1.6 }}>
+            <div style={{ fontWeight: 800, fontSize: 14, color: C.gold, marginBottom: 6 }}>The Key Difference</div>
+            {preMaxOT > 0 && preMaxYears > 0 ? (
+              <span>A member who averaged {fmt(preMaxOT)} OT hours/year for {preMaxYears} years before their Max 3 contributed <strong>${fmt(results.preMaxContrib)}</strong> in pension contributions from that overtime. Under the current system, that work adds <strong>$0</strong> to their pension. Under the alternative, it earns <strong>{results.preMaxServiceCredit.toFixed(2)} years</strong> of service credit.</span>
+            ) : <span>Set some pre-Max-3 OT hours to see how the two systems treat career-long overtime differently.</span>}
+            {maxOT > 0 && (<span><br /><br />The {fmt(maxOT)} hrs/year during the Max 3 adds <strong>${fmt(results.monthlyBenefitBoost)}/month for life</strong> under the current system, but only <strong>{results.maxServiceCredit.toFixed(2)} years</strong> of credit under the alternative.</span>)}
+          </div>
+        </React.Fragment>)}
+
+        {/* ═══════════════ FUND HEALTH VIEW ═══════════════ */}
+        {view === "fund" && (<React.Fragment>
+          {/* Current */}
+          <div style={{ background: "#fff", borderRadius: 12, border: "2px solid " + C.navyDark, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+            <div style={{ background: C.navyDark, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div><div style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>CURRENT SYSTEM: Fund Impact</div><div style={{ color: "#a8bdd4", fontSize: 11 }}>OT in Final Average Salary</div></div>
+              <div style={{ background: results.netCostS1 > 0 ? C.red : C.green, borderRadius: 6, padding: "4px 10px", color: "#fff", fontSize: 12, fontWeight: 700 }}>{results.netCostS1 > 0 ? "NET COST" : "NET GAIN"}</div>
+            </div>
+            <div style={{ padding: "16px" }}>
+              <ComparisonBar leftLabel="Contributions Collected" rightLabel="Extra Liability Created (PV)" leftValue={results.totalContributions} rightValue={results.extraLiabilityPV} leftColor={C.green} rightColor={C.red} />
+              <div style={{ display: "flex", gap: 8 }}>
+                <MetricCard label="Net Cost to Fund" value={"$" + fmt(Math.abs(results.netCostS1))} sub={results.netCostS1 > 0 ? "Fund absorbs this loss" : "Fund gains surplus"} color={results.netCostS1 > 0 ? C.red : C.green} bg={results.netCostS1 > 0 ? "#fff5f5" : "#f0fff4"} />
+                <MetricCard label="Liability per $1 Contributed" value={results.ratioS1.toFixed(1) + "x"} sub={results.ratioS1 > 1 ? "$" + results.ratioS1.toFixed(0) + " liability per $1 collected" : "Contributions cover the liability"} color={results.ratioS1 > 2 ? C.red : results.ratioS1 > 1 ? "#c97a00" : C.green} bg={results.ratioS1 > 2 ? "#fff5f5" : results.ratioS1 > 1 ? "#fffbeb" : "#f0fff4"} />
+              </div>
+              <div style={{ marginTop: 12, background: results.ratioS1 > 3 ? "#fff5f5" : "#fffbeb", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "#666", lineHeight: 1.6 }}>
+                <strong style={{ color: C.navyDark }}>The mismatch:</strong>{" "}
+                {preMaxOT > 0 && preMaxYears > 0 ? <span>Pre-Max-3 OT contributed ${fmt(results.preMaxContrib)} to the fund with $0 extra liability (pure gain for the fund, nothing for the member). </span> : null}
+                {maxOT > 0 ? <span>Max-3 OT contributed ${fmt(results.maxContrib)} but created ${fmt(results.extraLiabilityPV)} in present-value liability. That's a <strong>{results.lateRatio === Infinity ? "\u221E" : fmt(results.lateRatio)}:1 ratio</strong> from just the final 36 months.</span> : <span>Set some Max-3 OT to see the mismatch.</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Alternative */}
+          <div style={{ background: "#fff", borderRadius: 12, border: "2px solid " + C.gold, overflow: "hidden", marginBottom: 14, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+            <div style={{ background: "linear-gradient(135deg, " + C.gold + ", #b8941f)", padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div><div style={{ color: C.navyDark, fontSize: 13, fontWeight: 700 }}>ALTERNATIVE SYSTEM: Fund Impact</div><div style={{ color: "#5a4a1a", fontSize: 11 }}>OT as Service Credit (1.25:1)</div></div>
+              <div style={{ background: results.netCostS2 > 0 ? "#c97a00" : C.green, borderRadius: 6, padding: "4px 10px", color: "#fff", fontSize: 12, fontWeight: 700 }}>{results.netCostS2 > 0 ? "NET COST" : "NET GAIN"}</div>
+            </div>
+            <div style={{ padding: "16px" }}>
+              <ComparisonBar leftLabel="Contributions Collected" rightLabel="Extra Liability Created (PV)" leftValue={results.totalContributions} rightValue={results.extraLiabilityPVAlt} leftColor={C.green} rightColor="#c97a00" />
+              <div style={{ display: "flex", gap: 8 }}>
+                <MetricCard label="Net Cost to Fund" value={"$" + fmt(Math.abs(results.netCostS2))} sub={results.netCostS2 > 0 ? "Fund absorbs this cost" : "Fund gains surplus"} color={results.netCostS2 > 0 ? "#c97a00" : C.green} bg={results.netCostS2 > 0 ? "#fffbeb" : "#f0fff4"} />
+                <MetricCard label="Liability per $1 Contributed" value={results.ratioS2.toFixed(1) + "x"} sub={results.ratioS2 > 1 ? "$" + results.ratioS2.toFixed(0) + " liability per $1 collected" : "Contributions cover the liability"} color={results.ratioS2 > 2 ? C.red : results.ratioS2 > 1 ? "#c97a00" : C.green} bg={results.ratioS2 > 2 ? "#fff5f5" : results.ratioS2 > 1 ? "#fffbeb" : "#f0fff4"} />
+              </div>
+              <div style={{ marginTop: 12, background: "#eef6ef", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "#2d6a4f", lineHeight: 1.6 }}>
+                <strong>Why this is easier for the actuary:</strong> Liability accrues proportionally throughout the career, not in a 36-month spike. Each OT hour adds exactly ${(SERVICE_CREDIT_RATIO / ANNUAL_HOURS * BENEFIT_RATE * baseSalary / 12).toFixed(2)} to the monthly benefit. The Final Average Salary (FAS) stays at base salary, tracking the assumed 3% general compensation increase with minimal deviation.
+              </div>
+            </div>
+          </div>
+
+          {/* Head to Head */}
+          <div style={{ background: "linear-gradient(135deg, " + C.navyDark + ", #1e3a5f)", borderRadius: 12, padding: "18px", color: "#fff", marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.gold, marginBottom: 12 }}>Head-to-Head</div>
+            <div style={{ display: "flex", gap: 10 }}>
+              {[{ label: "Current System", val: results.netCostS1 }, { label: "Alternative", val: results.netCostS2 }].map(function(s, i) {
+                return (
+                  <div key={i} style={{ flex: 1, background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "12px", textAlign: "center" }}>
+                    <div style={{ fontSize: 11, color: "#a8bdd4" }}>{s.label}</div>
+                    <div style={{ fontSize: 10, color: "#a8bdd4" }}>Net Fund Cost</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: s.val > 0 ? "#fc8181" : "#68d391" }}>${fmt(Math.abs(s.val))}</div>
+                    <div style={{ fontSize: 10, color: s.val > 0 ? "#fc8181" : "#68d391" }}>{s.val > 0 ? "cost" : "surplus"}</div>
+                  </div>
+                );
+              })}
+            </div>
+            {results.netCostS1 > results.netCostS2 && results.netCostS1 > 0 && (
+              <div style={{ marginTop: 10, fontSize: 13, color: "#68d391", textAlign: "center", fontWeight: 700 }}>
+                Alternative saves the fund ${fmt(results.netCostS1 - results.netCostS2)} in this scenario
+              </div>
+            )}
+            {results.netCostS2 > results.netCostS1 && (
+              <div style={{ marginTop: 10, fontSize: 13, color: "#fc8181", textAlign: "center", fontWeight: 700 }}>
+                Alternative costs the fund ${fmt(results.netCostS2 - results.netCostS1)} more in this scenario
+              </div>
+            )}
+          </div>
+
+          {/* Actuarial Note */}
+          <div style={{ background: "#fff", borderRadius: 12, padding: "16px", border: "1px solid #e8e5df", fontSize: 12, lineHeight: 1.6, color: "#555" }}>
+            <div style={{ fontWeight: 800, color: C.navyDark, fontSize: 13, marginBottom: 6 }}>Actuarial Predictability</div>
+            <p style={{ margin: "0 0 8px" }}><strong>Current system problem:</strong> Rudd &amp; Wisdom reported actual payroll growth of 7.4% to 8.0% per year, well above the 3% assumption. Overtime variation is the primary driver. That gap means the actuary consistently underestimates future benefit obligations, producing actuarial losses at each valuation.</p>
+            <p style={{ margin: "0 0 8px" }}><strong>Alternative system advantage:</strong> Service credit accrual is trackable in real time. The actuary knows exactly how many OT hours have been logged at any point and can project liability with precision. Final Average Salary (FAS) stays at base salary, which moves in line with the 3% general compensation increase assumption.</p>
+            <p style={{ margin: 0, fontStyle: "italic", color: "#888" }}>Assumptions: {results.retirementYears}-year retirement (to age 80), 6.75% discount rate (per Rudd &amp; Wisdom and Article 12 Meet and Confer), 1.5× OT rate on {fmt(ANNUAL_HOURS)}-hr base schedule (56 hrs/wk), 31.1% combined contribution rate (12.6% member + 18.5% city).</p>
+          </div>
+        </React.Fragment>)}
+
+        {/* Footer */}
+        <div style={{ marginTop: 24, padding: "12px 0", borderTop: "1px solid #e0ddd6", fontSize: 11, color: "#aaa", textAlign: "center", lineHeight: 1.5 }}>
+          Denton Firemen's Relief &amp; Retirement Fund | Board Analysis Tool<br />
+          This calculator is for educational and discussion purposes only. It is not an actuarial valuation.<br />
+          All assumptions sourced from Rudd &amp; Wisdom (2025 Experience Review), the 2026 TLFFRA Report (PRB), and the Plan Document.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<OTCalculator />);
+</script>
+</body>
+</html>
