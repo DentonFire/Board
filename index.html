@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>COLA &amp; Overtime Analysis | DFRRF</title>
+<link rel="icon" type="image/png" href="https://files.constantcontact.com/3720c3fd901/10017eb4-f7d2-424d-92ed-c1b5424b9869.png">
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700;800;900&family=Playfair+Display:wght@700;800&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#1a2744;--navy-light:#2d4a7c;--gold:#c9a84c;--green:#2d6a4f;--red:#c53030;--bg:#faf8f2;--card:#fff;--text:#333;--text-light:#666;--border:#e0ddd6;--shadow:0 2px 8px rgba(0,0,0,0.06)}
@@ -208,3 +209,203 @@ footer a{color:var(--navy-light)}
 <h3 id="math">How the Per-Hour Numbers Are Calculated</h3>
 <div class="info-box">
 <p><strong>Inputs (all from the 12/31/2023 valuation):</strong> Base salary: $100,000. Hourly rate: $100,000 / 2,912 hours = $34.34. OT rate (<a href="#glossary">FLSA</a> 1.5x): $51.51. Combined contribution rate: 31.1% (12.6% member + 18.5% city). Discount rate: 6.75% (<a href="https://www.ruddwisdom.com/">R&amp;W</a> Exhibit 11, B.1; <a href="https://dentonfire.github.io/Pension/">Article 12</a> Section 5). Years of service: 25. Retirement age: 52. Mortality basis: PubS-2010 (Exhibit 11, B.3).</p>
+<p><strong>Contributions per OT hour:</strong> $51.51 x 31.1% = $16.02.</p>
+<p><strong>Current system, Max-3 liability per hour:</strong> One hour of annual OT during the Max 3 adds $51.51 to the annual FAS. Additional annual benefit = 25 x 2.59% x $51.51 = $33.35/yr for life. Present value at 6.75% over 28 years (age 52 to 80): $33.35 x 12.4358 = $414.78. Net: $16.02 collected minus $414.78 owed = -$398.76.</p>
+<p><strong>Alternative per hour:</strong> One hour of OT earns 1.25/2,912 = 0.000429 additional years of service. Additional annual benefit = 0.000429 x 2.59% x $100,000 = $1.11/yr for life. Present value: $1.11 x 12.4358 = $13.83. Net: $16.02 collected minus $13.83 owed = +$2.19.</p>
+<p class="source">The PV annuity factor of 12.4358 = (1 - (1.0675)^(-28)) / 0.0675. Spousal continuation is not separately modeled; the full actuarial study by Rudd and Wisdom would include it.</p>
+</div>
+
+<h3>C. Aggregate Impact</h3>
+
+<p>The table below shows the complete financial picture for each overtime group: contributions collected (identical in both systems), liability created, and the net result. Green means the fund comes out ahead; red means the fund loses money.</p>
+
+<table>
+<thead><tr><th>Overtime Group</th><th>Count</th><th>OT Contributions Collected</th><th style="border-left:2px solid #fff">Current System Net</th><th style="border-left:2px solid #fff">Alternative (1.25:1) Net</th></tr></thead>
+<tbody>
+<tr><td>Heavy early-career OT</td><td>40</td><td>$3.72M</td><td style="color:var(--green);font-weight:700">+$2.66M surplus</td><td style="color:var(--green);font-weight:700">+$0.51M surplus</td></tr>
+<tr><td>Steady career OT</td><td>135</td><td>$9.46M</td><td style="color:var(--red);font-weight:700">-$0.21M cost</td><td style="color:var(--green);font-weight:700">+$1.40M surplus</td></tr>
+<tr><td>Moderate late increase</td><td>54</td><td>$4.35M</td><td style="color:var(--red);font-weight:700">-$4.07M cost</td><td style="color:var(--green);font-weight:700">+$0.69M surplus</td></tr>
+<tr><td>Max-3 concentration</td><td>40</td><td>$2.63M</td><td style="color:var(--red);font-weight:700">-$5.69M cost</td><td style="color:var(--green);font-weight:700">+$0.39M surplus</td></tr>
+<tr style="font-weight:700;border-top:3px solid var(--navy)"><td>TOTAL</td><td>269</td><td>$20.2M</td><td style="color:var(--red)">-$7.3M COST</td><td style="color:var(--green)">+$3.0M SURPLUS</td></tr>
+</tbody>
+</table>
+<p class="source">Distribution percentages are estimates based on typical fire department staffing patterns, not DFRRF-specific payroll data. The Board should direct Rudd and Wisdom to validate using actual member overtime records. Contributions are identical in both systems because both assess 31.1% on total compensation including overtime.</p>
+
+<div class="info-box green">
+<strong>Under the current system, three of four groups cost the fund money.</strong> Only the early-career group produces a surplus, and only because the current formula gives those members zero benefit for their overtime (the fund keeps the contributions and owes nothing). Under the alternative, <strong>all four groups produce a surplus.</strong> The fund collects more in contributions than it owes in benefits for every type of overtime behavior.
+</div>
+
+<p><strong>Total improvement: $10.3 million. That equals 70% of the fund's $14.82 million UAAL.</strong> The fund goes from losing $7.3 million on overtime to retaining $3.0 million.</p>
+
+<h3>D. Connection to COLA Affordability</h3>
+<p><strong>The overtime reform and the COLA question are connected.</strong> Reducing overtime-related liability by $10.3 million improves the funded ratio and shortens the amortization period. A shorter amortization period brings the fund closer to meeting the COLA trigger thresholds proposed in Part 4. <strong>In other words: fixing the overtime treatment first makes a future COLA more affordable and more likely.</strong></p>
+
+<p>Try the <a href="Calculator.html"><strong>interactive OT Impact Calculator</strong></a> to model different scenarios.</p>
+
+<!-- ═══ PART 4 ═══ -->
+<h2 id="part4">Part 4: Proposal</h2>
+
+<h3 id="triggers">A. COLA: Clear Benchmarks for the Membership</h3>
+<p>The Board should communicate to the membership that the fund's goal is to provide ad hoc COLAs to retirees on a regular basis, tied to specific, measurable benchmarks. When the benchmarks are met, the Board will direct Rudd and Wisdom to calculate the maximum affordable COLA as part of the biennial valuation. When the benchmarks are not met, no COLA is considered for that cycle.</p>
+
+<p>This gives retirees a clear answer to "when will I get a raise?" without creating an automatic obligation the fund may not be able to sustain.</p>
+
+<h3>Trigger Option A: Single Gate</h3>
+<p>The UAAL amortization period must be <strong>zero years or less</strong> (the UAAL is fully paid off). This is the most conservative option.</p>
+
+<h3>Trigger Option B: Dual Gate (Recommended)</h3>
+<p>Two conditions, both must be met:</p>
+<div class="indent">
+<p>(1) Funded ratio at or above <strong>100%</strong> on an <a href="#glossary">Actuarial Value of Assets (AVA)</a> basis.</p>
+<p>(2) Amortization period at or below <strong>5 years</strong>.</p>
+</div>
+
+<h3>Trigger Option C: Triple Gate</h3>
+<p>Three conditions, all must be met:</p>
+<div class="indent">
+<p>(1) Funded ratio at or above <strong>95%</strong>.</p>
+<p>(2) Amortization period at or below <strong>10 years</strong>.</p>
+<p>(3) The city's actual contribution rate exceeds the <a href="#glossary">ADCR</a> by at least <strong>3 percentage points</strong>.</p>
+</div>
+<p>Under current fund metrics, this option would pass today. That is by design: Option C is calibrated to authorize a COLA review at the fund's current favorable position, subject to Rudd and Wisdom's affordability analysis. The gates close automatically if conditions deteriorate.</p>
+
+<h3>Who Does the Math?</h3>
+<p>The pass/fail check is straightforward. The fund administrator can review the most recent valuation summary and determine whether each gate is met. The funded ratio, amortization period, and contribution rates are all reported in Section II of the valuation.</p>
+<p>The COLA sizing (how much can the fund afford?) must be done by <a href="https://www.ruddwisdom.com/">Rudd and Wisdom</a>. This protects the Board from liability and ensures every COLA is costed under multiple investment scenarios before it is granted. The Board should direct that the COLA calculation be included as a standing line item in the biennial valuation contract.</p>
+
+<h3>Timing</h3>
+<p>Review the triggers at the first regular Board meeting after each biennial valuation is accepted. The biennial cycle is the right cadence; annual reviews would rely on stale actuarial data or informal estimates.</p>
+
+<h3 id="alternative">B. Overtime: The Alternative Plan</h3>
+<p>The proposal: remove overtime from the FAS calculation and instead credit each overtime hour with 1.25 hours of credited service. The benefit formula would become:</p>
+
+<div class="callout" style="text-align:center;font-family:'Merriweather',Georgia,serif;font-size:1.05rem">
+Monthly Benefit = (Actual YOS + OT Service Credit) x 2.59% x Base FAS / 12
+</div>
+
+<p><strong>At the 1.25:1 ratio, every hour of overtime is net positive for the fund (+$2.19/hour).</strong> 65% of members break even or come out ahead. Members who work steady overtime throughout their career receive approximately 93% of their current overtime-related benefit at a 1.40:1 ratio. Young firefighters who carry heavy mandatory overtime early in their careers receive pension credit for the first time.</p>
+
+<h3>Why the Alternative Is Better for Members</h3>
+<p><strong>The current plan is a gamble.</strong> It depends on two things going right at exactly the right time:</p>
+<div class="indent">
+<p>(a) Overtime has to be available during your Max 3. Staffing levels, budget cycles, and department needs change. A member who plans to work heavy overtime in their final three years may find that overtime simply is not there when they need it.</p>
+<p>(b) Even if overtime is available, you have to be able to work enough of it to make a real difference in your FAS. Injury, illness, family obligations, or assignment changes can all limit how much overtime a member can realistically pick up during a specific 36-month window.</p>
+</div>
+<p><strong>The alternative eliminates both of these risks.</strong> Every overtime hour earns the same service credit whether it is worked in year 1 or year 25. It does not matter whether the member works overtime during their lowest-paid years as a new firefighter or their highest-paid years as a senior officer. The credit is the same per hour. There is no timing strategy needed and no gamble about what overtime will be available in the final three years.</p>
+
+<h3>Potential to Remove the Special Deployment Overtime Cap</h3>
+<p>Under the current plan, overtime pay for special deployments in excess of $2,000 per biweekly pay period is excluded from the FAS (Exhibit 14, Item 13). If the alternative is adopted and Rudd and Wisdom confirm it is net beneficial to the fund, the Board could consider eliminating this cap entirely, since overtime would no longer flow through the FAS at all.</p>
+
+<h3>Implementation: Member's Choice During Phase-In</h3>
+<p>For current employees: a 5-year phase-in window. During the phase-in, each member would choose which system they want to retire under. <strong>This is not a blend of both formulas. It is a choice.</strong> Members close to retirement can elect to stay under the current system. Members who prefer the service credit approach can opt in. At the end of the 5-year window, the alternative system applies to everyone.</p>
+<p>For all future hires (effective date of adoption forward): immediate implementation under the new formula.</p>
+
+<h3 id="rw">C. Direct Rudd and Wisdom to Study Both</h3>
+
+<div class="warning" style="background:#fffbeb;border-left-color:var(--gold)">
+<strong>Timing is critical.</strong> <a href="https://www.ruddwisdom.com/">R&amp;W's</a> proposal for the 2026 to 2029 engagement (dated January 16, 2026) calls for the Board to furnish all valuation data in April 2026 and for R&amp;W to complete the valuation by August 2026, with presentation to the Board in September 2026. <strong>The data handoff is happening this month. If the Board wants these analyses included, the request should accompany the data package the fund administrator sends to R&amp;W.</strong>
+</div>
+
+<p>Supplemental analyses requested:</p>
+<div class="indent">
+<p>(1) The actuarial impact of the overtime service credit conversion at 1.25:1, using individual member compensation and overtime data, including the 5-year member-choice phase-in for current members and immediate implementation for new hires.</p>
+<p>(2) The projected effect on the funded ratio and amortization period over 10 years, modeled under the same six investment scenarios used in the December 31, 2023 valuation.</p>
+<p>(3) The cost of a 1% ad hoc COLA for current retirees under both systems, to quantify how the overtime reform affects COLA affordability.</p>
+</div>
+
+<h3>D. Sequencing</h3>
+<div class="indent">
+<p><strong>Step 1:</strong> Present this analysis to the Board. Discuss the three COLA trigger options and select one.</p>
+<p><strong>Step 2:</strong> Direct Rudd and Wisdom to include the overtime and COLA analyses in the December 31, 2025 valuation.</p>
+<p><strong>Step 3:</strong> If the actuarial results confirm the projected improvement, present the overtime service credit conversion to the membership for a vote (as required under TLFFRA for benefit formula changes affecting existing members).</p>
+<p><strong>Step 4:</strong> If adopted, implement the overtime reform (5-year choice window for current members, immediate for new hires).</p>
+<p><strong>Step 5:</strong> Allow one to two valuation cycles to confirm the improvement in fund metrics.</p>
+<p><strong>Step 6:</strong> Evaluate COLA eligibility against the adopted trigger benchmarks using the post-reform valuation data.</p>
+</div>
+
+<p class="source">This analysis is for discussion purposes and does not constitute a formal actuarial valuation. The Board should engage Rudd and Wisdom, Inc. to perform actuarial analysis using individual member data before adopting any changes to the benefit formula or COLA provisions.</p>
+
+<!-- ═══ APPENDIX A ═══ -->
+<h2 id="austin">Appendix A: Austin Firefighters Retirement Fund Case Study</h2>
+<p><em>What happens when a healthy fund grants a COLA it cannot sustain.</em></p>
+
+<h3>Background</h3>
+<p>The <a href="https://www.afrfund.org/">Austin Firefighters Retirement Fund (AFRF)</a> was created in 1937 under TLFFRA and later established independently under Article 6243e-1. The AFRF serves approximately 2,200 total members. Unlike Denton, Austin firefighters do not participate in Social Security. The pension is their sole retirement income.</p>
+
+<h3>The COLA Decision</h3>
+<p>In 2021 and 2022, the AFRF was approximately 100% funded. The fund's actuary certified that the plan could afford a 4% to 5% cost-of-living adjustment. The Board approved it.</p>
+<p><strong>Austin Firefighters Association President Bob Nicks later called the decision "a big mistake."</strong> The COLA's permanent, compounding cost, combined with the 2022 market downturn, drove the unfunded liability from near zero to over $300 million in roughly two years.</p>
+
+<h3>The Fallout</h3>
+<p>By 2023, the <a href="https://www.prb.texas.gov/">PRB</a> found the AFRF actuarially unsound and issued an "at risk" letter under the <a href="#glossary">Funding Soundness Restoration Plan (FSRP)</a>. The projected amortization period exceeded 100 years. The fund stopped granting COLAs in 2023 and 2024.</p>
+
+<h3>The Legislative Fix</h3>
+<p>House Bill 2802 was signed into law in June 2025. Key provisions:</p>
+<div class="indent">
+<p>A $54.4 million city cash infusion applied directly to the unfunded liability.</p>
+<p>A new "Tier B" for firefighters hired after January 2026: 90% of final pay after 30 years, down from 99%.</p>
+<p>Future contribution changes shared between the city and members at a 2:1 ratio.</p>
+<p>Replacement of the ad hoc COLA with a pre-funded, predictable 1% annual COLA.</p>
+</div>
+<p>The PRB approved the revised plan as actuarially sound in August 2025. The city's bond rating improved from AA+ to AAA.</p>
+
+<h3>Denton vs. Austin: Key Differences</h3>
+<table>
+<thead><tr><th>Factor</th><th>Austin (pre-COLA)</th><th>Denton (current)</th></tr></thead>
+<tbody>
+<tr><td>Funded ratio</td><td>~100%</td><td>91.1%</td></tr>
+<tr><td>Social Security</td><td style="color:var(--red);font-weight:700">No</td><td style="color:var(--green);font-weight:700">Yes</td></tr>
+<tr><td>Assumed return</td><td>7.50%</td><td>6.75% (lowest in TLFFRA)</td></tr>
+<tr><td>COLA granted</td><td>4-5% board-granted (2022)</td><td>Ad hoc only (2.0% in 2008; tiered in 2022)</td></tr>
+<tr><td>Unfunded liability result</td><td style="color:var(--red);font-weight:700">$300M+</td><td style="color:var(--green)">$14.82M (stable)</td></tr>
+<tr><td>Required legislative fix?</td><td style="color:var(--red);font-weight:700">Yes (HB 2802)</td><td style="color:var(--green);font-weight:700">No</td></tr>
+</tbody>
+</table>
+
+<h3>Lessons for Denton</h3>
+<p><strong>1. A COLA can destroy a fully funded plan faster than almost any other benefit change.</strong> Austin went from ~100% funded to a $300M hole in roughly two years.</p>
+<p><strong>2. Actuary certification is necessary but not sufficient.</strong> Austin's actuary said the fund "could afford" the COLA. That assessment proved wrong when combined with market losses.</p>
+<p><strong>3. Social Security changes the equation.</strong> Austin firefighters had zero inflation protection outside their pension. Denton retirees receive Social Security COLAs.</p>
+<p><strong>4. The fix was expensive for everyone.</strong> Firefighters lost benefits for future hires. The city wrote a $54.4 million check. Denton's current position should be preserved, not spent.</p>
+<p><strong>5. Pre-funding beats retroactive granting.</strong> Austin's new plan includes a pre-funded 1% COLA built into the normal cost. Denton's proposed trigger framework achieves a similar result: the Board only grants a COLA after confirming the fund can absorb it.</p>
+
+<!-- ═══ GLOSSARY ═══ -->
+<h2 id="glossary">Glossary</h2>
+
+<table>
+<thead><tr><th style="width:35%">Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td><strong>Actuarial Accrued Liability (AAL)</strong></td><td>The present value of pension benefits earned by all current and former members. DFRRF: $167,333,614 (12/31/2023).</td></tr>
+<tr><td><strong>Actuarially Determined Contribution Rate (ADCR)</strong></td><td>The contribution rate sufficient to cover normal cost and pay off the UAAL. DFRRF: 13.33% (12/31/2023).</td></tr>
+<tr><td><strong>Actuarial Value of Assets (AVA)</strong></td><td>The smoothed value of fund assets using a five-year method. Reduces year-to-year volatility. DFRRF: $152,516,894 (12/31/2023).</td></tr>
+<tr><td><strong>Ad Hoc COLA</strong></td><td>A retiree benefit increase granted at the Board's discretion. Creates no vested right to future increases.</td></tr>
+<tr><td><strong>Amortization Period</strong></td><td>Years to pay off the UAAL at current contribution rates. <a href="https://www.prb.texas.gov/">PRB</a> max: 30 years. DFRRF: 6.5 years.</td></tr>
+<tr><td><strong>Consumer Price Index (CPI)</strong></td><td>Government measure of average price changes. Standard inflation benchmark. <a href="https://fred.stlouisfed.org/series/CPIAUCSL">BLS data</a>.</td></tr>
+<tr><td><strong>Cost-of-Living Adjustment (COLA)</strong></td><td>An increase to a retiree's monthly benefit intended to offset inflation. Can be automatic or ad hoc.</td></tr>
+<tr><td><strong>Discount Rate</strong></td><td>Interest rate used to calculate present value of future benefits. DFRRF: 6.75% (= assumed investment return).</td></tr>
+<tr><td><strong>Experience Loss</strong></td><td>Increase in UAAL when actual experience differs from assumptions. DFRRF had a $4,059,054 loss in the 2023 valuation.</td></tr>
+<tr><td><strong>Fair Labor Standards Act (FLSA)</strong></td><td>Federal law governing overtime pay. Fire employees on a 56-hour schedule earn OT at 1.5x base hourly rate.</td></tr>
+<tr><td><strong>Final Average Salary (FAS)</strong></td><td>Highest 36 consecutive months of compensation. Includes regular OT; excludes special deployment OT above $2,000/biweekly (Exhibit 14, Item 13).</td></tr>
+<tr><td><strong>Funded Ratio</strong></td><td>AVA / AAL. 100% = assets equal obligations. DFRRF: 91.1%.</td></tr>
+<tr><td><strong>Funding Soundness Restoration Plan (FSRP)</strong></td><td>Corrective action required by <a href="https://www.prb.texas.gov/">PRB</a> when amortization exceeds 30 years and funded ratio falls below 65%.</td></tr>
+<tr><td><strong>Max 3</strong></td><td>The highest 36 consecutive months of compensation used to calculate FAS. Under the current system, only OT during this window affects the benefit.</td></tr>
+<tr><td><strong>Normal Cost</strong></td><td>Annual cost of benefits being earned by active members. DFRRF: 22.16% of payroll.</td></tr>
+<tr><td><strong>OT Service Credit</strong></td><td>Under the proposed alternative: Total Career OT Hours x 1.25 / 2,912 = additional years of credited service.</td></tr>
+<tr><td><strong>Retro DROP</strong></td><td>Retroactive Deferred Retirement Option Plan. Eligible at age 52 with 22 years. Max 48-month lump sum.</td></tr>
+<tr><td><strong><a href="https://data.prb.texas.gov/">TLFFRA</a></strong></td><td>Texas Local Fire Fighters Retirement Act. The state law under which all 42 local firefighter pension funds operate.</td></tr>
+<tr><td><strong><a href="https://www.tmrs.com/">TMRS</a></strong></td><td>Texas Municipal Retirement System. Covers non-fire, non-police city employees. Denton's TMRS rate: 18.94% (2024).</td></tr>
+<tr><td><strong><a href="https://www.prb.texas.gov/">PRB</a></strong></td><td>Texas Pension Review Board. State oversight agency for all public retirement systems.</td></tr>
+<tr><td><strong>UAAL</strong></td><td>Unfunded Actuarial Accrued Liability. AAL minus AVA. DFRRF: $14,816,720.</td></tr>
+</tbody>
+</table>
+
+</div>
+
+<footer>
+  <p><a href="https://dentonfire.github.io/Pension/">DFRRF Member Resources</a> | <a href="https://dentonfirepension.com/Home.aspx">Member Portal</a> | <a href="Calculator.html">OT Impact Calculator</a></p>
+  <p>Denton Firemen's Relief &amp; Retirement Fund | Board meetings: 3rd Wednesday, 8:30 AM, Central Fire Station</p>
+  <p>This analysis is for discussion purposes and does not constitute a formal actuarial valuation.</p>
+</footer>
+
+</body>
+</html>
